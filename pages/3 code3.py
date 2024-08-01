@@ -21,24 +21,20 @@ api_key = secrets.get("api_key")
 
 # 콘텐츠 생성 함수
 def try_generate_content(api_key, prompt):
+    # API 키 설정
     genai.configure(api_key=api_key)
    
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
-                                  generation_config={
-                                      "temperature": 0.9,
-                                      "top_p": 1,
-                                      "top_k": 1,
-                                      "max_output_tokens": 2048,
-                                  },
-                                  safety_settings=[
-                                      {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-                                      {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-                                      {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-                                      {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-                                  ])
     try:
-        response = model.generate_content(prompt)
-        return response.text
+        # 콘텐츠 생성
+        response = genai.generate(
+            model="gemini-1.5-flash",
+            prompt=prompt,
+            max_tokens=2048,
+            temperature=0.9,
+            top_p=1,
+            top_k=1
+        )
+        return response[0]['text']  # 예상 생성된 텍스트 반환
     except Exception as e:
         print(f"API 호출 실패: {e}")
         return None
@@ -48,7 +44,7 @@ st.title("지구의 크기 측정 실험")
 st.write("에라토스테네스의 방법을 이용하여 지구의 크기를 측정합니다. 실험 시간에 따른 지구본의 측정 위치를 제공합니다.")
 
 # 실험 시간 입력
-experiment_time = st.time_input("실험 시간을 입력하세요:", value=datetime.now().time())
+experiment_time = st.time_input("실험 시간을 입력하세요:", value=time(12, 0))  # 기본 시간 12:00
 
 # 실험 시간에 따른 결과 생성
 if st.button("확인"):
@@ -58,4 +54,4 @@ if st.button("확인"):
     if response:
         st.markdown(to_markdown(response))
     else:
-        st.error("정보를 가져오는 데 실패했습니다.")
+        st.error("정보를 가져오는 데 실패했습니다. API 키와 네트워크 연결을 확인해주세요.")

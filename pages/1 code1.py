@@ -1,12 +1,23 @@
 import textwrap
 import google.generativeai as genai
 import streamlit as st
+from datetime import datetime, time
+import toml
+import pathlib
 
 def to_markdown(text):
     text = text.replace('•', '*')
     return textwrap.indent(text, '> ', predicate=lambda _: True)
 
-api_key = "AIzaSyDl8qvlDLVhF0WbRldoMaaidKPEZmTXrH0"
+# secrets.toml 파일 경로
+secrets_path = pathlib.Path(__file__).parent.parent / ".streamlit/secrets.toml"
+
+# secrets.toml 파일 읽기
+with open(secrets_path, "r") as f:
+    secrets = toml.load(f)
+
+# secrets.toml 파일에서 API 키 값 가져오기
+api_key = secrets.get("api_key")
 
 # 콘텐츠 생성 함수
 def try_generate_content(api_key, prompt):
@@ -28,9 +39,11 @@ def try_generate_content(api_key, prompt):
             ]
         )
         # 응답에서 텍스트 추출
+        print(f"API 응답: {response}")  # 디버깅을 위한 응답 출력
         return response['choices'][0]['message']['content']
     except Exception as e:
         print(f"API 호출 실패: {e}")
+        print(f"상세 오류 정보: {str(e)}")  # 상세 오류 정보 출력
         return None
 
 # Streamlit 앱
@@ -50,4 +63,3 @@ if st.button("확인"):
             st.error("정보를 가져오는 데 실패했습니다.")
     else:
         st.warning("국가 이름을 입력해주세요.")
-
